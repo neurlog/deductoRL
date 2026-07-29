@@ -2,21 +2,26 @@
 
 A reinforcement learning agent that learns how to play Deducto parkour. The
 game is closed-source, so it reads the screen with computer vision 
-and utilizes the real keyboard and mouse; therefore, if you're training an agent,
-you cannot use your computer at the same time.
+and utilizes the real keyboard and mouse.
 
-**How it works:** you record demos of yourself playing, the policy is
-behavior-cloned from them, then agent fine-tunes it against a reward built system from
-the on-screen timer and finish line. 
+<p align="center">
+  <img width="600" height="386" alt="snipper-ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/a6c2d002-0eb6-48d0-b458-3d7d53d6941b"/>
+</p>
 
-Because the finish is more than 4 seconds of precise movement away, training utilises curriculum learning: 
+## How it works: 
+This reinforcement learning agent works in a supervised learning manner, meaning you record demos of yourself playing, the policy is
+behaviour-cloned from the demos and the agent fine-tunes the demos against a reward built system from
+the on-screen timer and finish line. The on-screen timer is used to tell the agent when it has fallen, as it becomes invisible when you fall off, and the finish line is used
+as a way to inform the robot when it has finished. 
+
+Due to the finish being more than 4 seconds of precise movement away, the agent utilises curriculum learning: 
 moving the in-game finish line to an early platform, mastering it, then pushing the finish further out.
 
-Moving the in-game timer can be done using `DeductoHelper.dll` which can be downloaded from [Deducto-Tools](https://github.com/neurlog/Deducto-Tools)
+Moving the in-game timer can be done using `DeductoHelper.dll` which can be downloaded from [Deducto-Tools](https://github.com/neurlog/Deducto-Tools). Massive shoutout to Dirty for helping me by creating and editing the DeductoHelper tool. DeductoHelper enables you to move the finish line, bind a respawn key, and set a respawn point.
 
-> **Status:** I built and tested this on macOS (the game running under CrossOver). The
+> I built and tested this on macOS (the game running under CrossOver). The
 > Windows code paths are written but have not been run against the real game, so
-> expect bugs (nothing claude cant fix lol).
+> expect bugs. For support, you can contact my discord: neurlog.
 
 ---
 
@@ -63,10 +68,9 @@ frames and input silently does nothing.
 ## 3. Set up the game
 
 - Windowed mode at a fixed resolution. Don't move or resize the window afterwards.
-- Bind a **respawn key** that returns you to the course start, and set
-  `RESPAWN_KEY` in `config.py` to match (default `"F"`). Every episode uses it,
+- Respawn key is naturally bound to "F" from `DeductoHelper.dll`. Every episode uses it,
   so runs always begin from an identical position.
-- Move the in-game **finish line to platform 2** for your first training stage.
+- Move the in-game **finish line to platform 2** for your first training stage. Also available on `DeductoHelper.dll`
 
 ## 4. Calibrate
 
@@ -82,14 +86,9 @@ the game's window title (on macOS, the process name from Activity Monitor).
 python diagnose_timer.py
 ```
 
-Play a full run while this watches, then copy its recommended `TIMER_*` values
-into `config.py`. The timer has to read reliably; everything downstream depends
-on it.
-
 ### Audio finish detection
 
-The finish plays a distinct tone, which is far steadier than watching the timer
-freeze. No OS lets you capture another app's audio directly, so route it through
+The finish plays a distinct tone, I used this feature to tell my agent when I finish a run. No OS lets you capture another app's audio directly, so route it through
 a loopback device.
 
 Install [VB-Cable](https://vb-audio.com/Cable/), set it as your default output,
@@ -121,9 +120,17 @@ python record_demos.py --out demos/run --episodes 40 --keep-falls
 
 Run `--check-input` first and confirm the numbers move when you move the mouse.
 
-Aim for 40-80 runs with variety: clean runs and some sloppy ones. It means the agent will be more versatile.
+Aim for 30-50 runs with variety: clean runs, some sloppy ones and you can use `--keep-falls` if you'd like to save runs where you fall. I kept my falls on so the agent learns what inputs caused me to fail, and so the agent familiarises themself with failed attempts.
 
 ## 6. Pretrain
+
+Pretraining teaches the agent to copy you before it ever tries the course
+itself. It goes through your demos frame by frame and learns to predict
+what you pressed given what was on screen, which is ordinary supervised
+learning rather than trial and error.
+
+Copying you first means it starts out roughly knowing the route, and training is then
+spent improving on that instead of searching blindly.
 
 ```powershell
 python pretrain.py --demos demos/run --out checkpoints/bc_pretrained.zip
@@ -137,7 +144,7 @@ Each stage stops itself once the agent finishes 8 of the last 10 episodes.
 python train.py --name p02 --resume-from checkpoints/bc_pretrained.zip --max-episode-seconds 6
 ```
 
-Then move the finish line one platform further out and resume from the stage you
+Then move the finish line one platform further and resume from the stage you
 just finished, keeping the anchor pointed at the behavior-cloned model:
 
 ```powershell
@@ -156,3 +163,8 @@ Everything lives in `config.py`. The settings worth touching first:
 - `ENT_COEF` sets how much the agent explores. Raise it to discover new terrain,
   lower it to refine what already works.
 - `BC_ANCHOR_COEF` sets how tightly it is held to your demos.
+
+## Important notes
+
+- Due to the game being closed-source, whilst training the agent, you cannot use your computer :(
+
