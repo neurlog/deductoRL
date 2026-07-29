@@ -62,40 +62,15 @@ def stack_episode(obs: np.ndarray) -> np.ndarray:
     return np.transpose(stacked, (0, 3, 1, 2))
 
 
-def episode_returns(n_steps: int, outcome: str, final_time: float,
-                    armed_index: int = -1) -> np.ndarray:
+def episode_returns(n_steps: int, outcome: str, final_time: float) -> np.ndarray:
     """Discounted returns under config.py's reward scheme.
 
-    Mirrors env.py step-for-step so the pretrained value head matches what
-    PPO will actually see:
-      * -TIME_PENALTY_PER_STEP every step
-      * +TIMER_RUNNING_REWARD_PER_STEP (capped per episode) on each ARMED,
-        non-terminal step. The timer-running survival reward. Armed_index
-        is the step the timer started (saved in each demo); -1 means it
-        never armed, so no survival reward at all.
-      * the outcome bonus (finish/fall) on the terminal step, which in
-        env.py takes the place of that step's survival reward.
-    The optical-flow shaping is intentionally NOT modelled here: it's tiny,
-    noisy, and can't be recomputed from metadata alone.
+    Mirrors env.py so the pretrained value head matches what PPO will see:
+    a small penalty every step, plus the finish bonus or fall penalty on the
+    final one. Optical-flow shaping is left out, being tiny, noisy, and not
+    recomputable from the saved metadata.
     """
     rewards = np.full(n_steps, -config.TIME_PENALTY_PER_STEP, dtype=np.float32)
-
-    # A finish/fall/never_started demo ends ON its terminal step, which gets
-    # the outcome bonus instead of a survival reward (env.py skips the else
-    # branch on terminal steps). A timeout demo has no terminal event, so its
-    # last step still earns survival reward.
-    has_terminal_event = outcome in ("finish", "fell", "never_started")
-    survival_end = n_steps - 1 if has_terminal_event else n_steps
-
-    if armed_index is not None and armed_index >= 0:
-        accum = 0.0
-        for i in range(armed_index, survival_end):
-            bonus = min(
-                config.TIMER_RUNNING_REWARD_PER_STEP,
-                max(0.0, config.TIMER_RUNNING_REWARD_MAX - accum),
-            )
-            rewards[i] += bonus
-            accum += bonus
 
     if outcome == "finish":
         t = final_time if final_time and final_time > 0 else n_steps * config.STEP_DT
@@ -126,9 +101,6 @@ def load_demos(demo_dir: str):
         actions = data["actions"]
         outcome = str(data["outcome"])
         final_time = float(data["final_time"])
-        # Step the timer started; needed to place the survival reward. Older
-        # demos without it fall back to -1 (no survival reward modelled).
-        armed_index = int(data["armed_index"]) if "armed_index" in data else -1
 
         if obs.shape[1:] != (*config.FRAME_SIZE, config.OBS_CHANNELS):
             print(f"  SKIP {os.path.basename(path)}: obs shape {obs.shape[1:]} "
@@ -143,7 +115,7 @@ def load_demos(demo_dir: str):
         episodes.append({
             "obs": stack_episode(obs),
             "actions": actions,
-            "returns": episode_returns(len(actions), outcome, final_time, armed_index),
+            "returns": episode_returns(len(actions), outcome, final_time),
             "outcome": outcome,
             "name": os.path.basename(path),
         })

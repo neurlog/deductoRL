@@ -40,7 +40,6 @@ class DeductoParkourEnv(gym.Env):
         self._episode_start_time = None
         self._tracker = None
         self._prev_gray_small = None
-        self._timer_reward_accum = 0.0
 
         self._audio = None
         if config.AUDIO_FINISH_ENABLED:
@@ -65,7 +64,6 @@ class DeductoParkourEnv(gym.Env):
 
         self._episode_start_time = time.time()
         self._prev_gray_small = None
-        self._timer_reward_accum = 0.0
         # With audio on, the timer is a pure arm+fall detector; the tone owns
         # finishes, so its unreliable freeze heuristic is switched off.
         self._tracker = TimerTracker(
@@ -140,13 +138,6 @@ class DeductoParkourEnv(gym.Env):
             info["event"] = "finish"
             info["elapsed_seconds"] = final_time
         else:
-            if self._tracker.armed:
-                bonus = min(
-                    config.TIMER_RUNNING_REWARD_PER_STEP,
-                    max(0.0, config.TIMER_RUNNING_REWARD_MAX - self._timer_reward_accum),
-                )
-                reward += bonus
-                self._timer_reward_accum += bonus
             reward += self._flow_reward(obs[..., 0], look_dx)
 
         info["armed"] = self._tracker.armed

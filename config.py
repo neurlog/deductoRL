@@ -55,15 +55,9 @@ MAX_EPISODE_SECONDS = 60
 TIME_PENALTY_PER_STEP = 0.01    # small cost per step, so dawdling is never free
 
 FINISH_REWARD = 5.0             # base payout for finishing
-FINISH_TIME_BONUS_SCALE = 0.15  # reward lost per second taken. Must stay above
-                                # (TIMER_RUNNING_REWARD_PER_STEP - TIME_PENALTY_PER_STEP)
-                                # / STEP_DT = 0.083, or slow finishes outscore fast ones
+FINISH_TIME_BONUS_SCALE = 0.15  # reward lost per second taken, so faster runs pay more
 FINISH_MIN_REWARD = 1.0         # floor, so a slow finish still beats not finishing
 FALL_PENALTY = -6.0             # cost of falling off
-
-TIMER_RUNNING_REWARD_PER_STEP = 0.02   # paid each step the run is live, so an agent
-TIMER_RUNNING_REWARD_MAX = 3.0         # about to fall gains nothing by falling sooner.
-                                       # Capped under FINISH_REWARD so finishing still wins
 
 FLOW_REWARD_SCALE = 0.01        # credit for scenery streaming past, i.e. moving forward.
 FLOW_MAX_PER_STEP = 1.0         # Mainly carries the run-up to platform 1, which pays nothing
