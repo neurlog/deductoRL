@@ -8,11 +8,16 @@ https://user-images.githubusercontent.com/PLACEHOLDER/demo.mp4
 
 <!-- Replace the line above with your video. See "Adding a video" at the bottom. -->
 
-**How it works:** you record demonstrations of yourself playing -> the policy is
-behavior-cloned from them -> PPO fine-tunes it against a reward built from the
-on-screen timer. Because the finish is ~12 seconds of precise movement away,
+**How it works:** you record demonstrations of yourself playing, the policy is
+behavior-cloned from them, then PPO fine-tunes it against a reward built from
+the on-screen timer. Because the finish is ~12 seconds of precise movement away,
 training uses a curriculum: move the in-game finish line to an early platform,
 master it, then push it further out.
+
+> **Status:** built and tested on macOS (the game running under CrossOver). The
+> Windows code paths are written but have not been run against the real game, so
+> expect to hit rough edges, most likely in demo recording. Bug reports and PRs
+> are very welcome.
 
 > Trained runs are a personal technical project. Please don't submit agent times
 > to the community leaderboard.
@@ -21,169 +26,137 @@ master it, then push it further out.
 
 ## 1. Install
 
+```powershell
+git clone <your-repo-url>
+cd deductoRL
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Install Tesseract from [UB-Mannheim](https://github.com/UB-Mannheim/tesseract/wiki)
+and tick "Add to PATH" during setup. Verify with `tesseract --version`.
+
+<details>
+<summary>macOS (game running under CrossOver)</summary>
+
 ```bash
 git clone <your-repo-url> && cd deductoRL
 python3 -m venv venv
-```
-
-**macOS** (the game runs through CrossOver):
-```bash
 source venv/bin/activate
 pip install -r requirements.txt
 brew install tesseract
 ```
+</details>
 
-**Windows** (native Steam build):
-```powershell
-venv\Scripts\activate
-pip install -r requirements.txt
-```
-Then install Tesseract from [UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki)
-and add it to your PATH.
+## 2. Permissions
 
-## 2. Grant permissions
+Run your terminal **as Administrator**. Windows blocks simulated input to games
+from an unprivileged process, so without this the agent presses keys and nothing
+happens.
 
-**macOS**. System Settings -> Privacy & Security. Grant **Screen Recording**,
+<details>
+<summary>macOS</summary>
+
+System Settings -> Privacy & Security. Grant **Screen Recording**,
 **Accessibility**, and **Microphone** to whatever runs Python (Terminal.app, or
-your editor if you run it from there). Without these, capture returns black
+your editor if you launch it from there). Without these, capture returns black
 frames and input silently does nothing.
-
-**Windows**. Run your terminal **as Administrator**, otherwise Windows blocks
-simulated input to the game.
+</details>
 
 ## 3. Set up the game
 
-- Windowed mode at a fixed resolution. Don't move or resize the window later.
-- Bind a **respawn key** that teleports you to the course start, and set
+- Windowed mode at a fixed resolution. Don't move or resize the window afterwards.
+- Bind a **respawn key** that returns you to the course start, and set
   `RESPAWN_KEY` in `config.py` to match (default `"F"`). Every episode uses it,
-  so runs always start from an identical position.
+  so runs always begin from an identical position.
 - Move the in-game **finish line to platform 2** for your first training stage.
 
 ## 4. Calibrate
 
-```bash
-python calibrate.py mouse     # hover the window corners and the timer, note the pixels
+```powershell
+python calibrate.py mouse
 ```
-Put those numbers into `CAPTURE_REGION` and `TIMER_ROI` in `config.py`. Also set
-`APP_NAME` (macOS: the process name in Activity Monitor; Windows: the window
-title).
 
-```bash
-python diagnose_timer.py      # play a full run; it prints recommended values
+Hover the game window's corners and the timer, note the pixel coordinates, and
+put them into `CAPTURE_REGION` and `TIMER_ROI` in `config.py`. Set `APP_NAME` to
+the game's window title (on macOS, the process name from Activity Monitor).
+
+```powershell
+python diagnose_timer.py
 ```
-Copy its recommended `TIMER_*` values into `config.py`. The timer must read
-reliably. Everything downstream depends on it.
 
-### Optional but recommended: audio finish detection
+Play a full run while this watches, then copy its recommended `TIMER_*` values
+into `config.py`. The timer has to read reliably; everything downstream depends
+on it.
 
-The finish plays a distinct tone, which is far more reliable than watching the
-timer freeze. Neither OS can capture another app's audio directly, so route it
-through a loopback device:
+### Audio finish detection
 
-- **macOS:** `brew install blackhole-2ch`, then in *Audio MIDI Setup* create a
-  Multi-Output Device containing both your speakers and BlackHole, and select it
-  as your system output.
-- **Windows:** install [VB-Cable](https://vb-audio.com/Cable/), set it as your
-  output, and enable "Listen to this device" on it so you can still hear the game.
+The finish plays a distinct tone, which is far steadier than watching the timer
+freeze. No OS lets you capture another app's audio directly, so route it through
+a loopback device.
 
-```bash
+Install [VB-Cable](https://vb-audio.com/Cable/), set it as your default output,
+then in Sound settings enable **Listen to this device** on the CABLE input so you
+can still hear the game.
+
+<details>
+<summary>macOS</summary>
+
+`brew install blackhole-2ch`, then in *Audio MIDI Setup* create a Multi-Output
+Device containing both your speakers and BlackHole, and select it as your system
+output.
+</details>
+
+```powershell
 python diagnose_audio.py --list    # find the loopback input, set AUDIO_DEVICE
 python diagnose_audio.py           # play and finish a run
 ```
+
 Set `AUDIO_FINISH_MIN_ENERGY` and `AUDIO_FINISH_MIN_RATIO` between what normal
 play shows and what the finish spikes to, then set `AUDIO_FINISH_ENABLED = True`.
 
 ## 5. Record demos
 
-```bash
-python record_demos.py --check-input                              # verify input is seen
+```powershell
+python record_demos.py --check-input
 python record_demos.py --out demos/run --episodes 40 --keep-falls
 ```
 
-Hold **W** the whole time (the agent always holds forward). Press your respawn
-key during each countdown. Aim for 40-80 runs with variety: clean runs on
-slightly different lines, runs where you wobble and recover, and some falls.
-Recovery runs matter most. They teach the agent what to do when it drifts off
-the ideal path.
+Run `--check-input` first and confirm the numbers move when you move the mouse.
+
+Aim for 40-80 runs with variety: clean runs and some sloppy ones. It means the agent will be more versatile.
 
 ## 6. Pretrain
 
-```bash
+```powershell
 python pretrain.py --demos demos/run --out checkpoints/bc_pretrained.zip
 ```
-
-No game needed. Watch the validation accuracy. Jump ~0.9 and look ~0.6 is healthy.
 
 ## 7. Train
 
 Each stage stops itself once the agent finishes 8 of the last 10 episodes.
 
-```bash
-# finish line on platform 2
+```powershell
 python train.py --name p02 --resume-from checkpoints/bc_pretrained.zip --max-episode-seconds 6
 ```
 
-Then move the finish line one platform further and resume from the stage you
+Then move the finish line one platform further out and resume from the stage you
 just finished, keeping the anchor pointed at the behavior-cloned model:
 
-```bash
-python train.py --name p03 --resume-from checkpoints/p02/ppo_deducto_parkour_final.zip \
-                --anchor-to checkpoints/bc_pretrained.zip --max-episode-seconds 6
+```powershell
+python train.py --name p03 --resume-from checkpoints/p02/ppo_deducto_parkour_final.zip --anchor-to checkpoints/bc_pretrained.zip --max-episode-seconds 6
 ```
 
-Repeat for p04, p05, ... raising `--max-episode-seconds` as runs get longer.
-Press **Shift+Alt+K** to stop early; the model is always saved.
-
-Watch progress with:
-```bash
-tensorboard --logdir logs
-```
-`rollout/ep_rew_mean` maps to finish rate: about -5 means it almost never
-finishes, 0 is roughly half, +3 or above is mostly finishing.
-
-The machine is unusable while training. The agent drives your real mouse and
-keyboard, and refocuses the game every episode.
+Repeat for p04, p05 and so on, raising `--max-episode-seconds` as runs get
+longer. Press **Shift+Alt+K** to stop early; the model is always saved.
 
 ---
 
-## Troubleshooting
-
-| Symptom | Fix |
-|---|---|
-| Episodes end instantly as "fell" | `TIMER_ROI` is wrong or the timer flickers. Rerun `diagnose_timer.py` |
-| Every episode is "never_started" | The agent can't reach platform 1 in time, or the timer never arms |
-| Agent flails wildly | Entropy too high, or PPO erased the clone. Lower `ENT_COEF`, raise `BC_ANCHOR_COEF` |
-| Agent repeats one identical mistake | Raise `ENT_COEF` toward 0.01, or record demos of that exact section |
-| A stage plateaus for tens of thousands of steps | Record ~10 demos of the blocking jump and re-run `pretrain.py` |
-| Audio detector reads all zeros | Wrong input device, missing mic permission, or `AUDIO_SAMPLE_RATE` doesn't match the device |
-
-Changing `FRAME_SIZE` or `STEP_DT` invalidates existing demos. Re-record them.
-
 ## Tuning
 
-Everything lives in `config.py`. The values that matter most:
+Everything lives in `config.py`. The settings worth touching first:
 
-- `ENT_COEF`. Exploration. Raise to discover new terrain, lower to refine.
-- `BC_ANCHOR_COEF`. How tightly the agent is held to your demos.
-- `FRAME_SIZE`. Visual detail. Bigger sees more but needs more demos.
-- `SUCCESS_STOP_THRESHOLD`. When a stage is considered mastered.
-
-## Platform support
-
-Developed and tested on macOS with CrossOver. The Windows input backend
-(`input_controller.py`, `hotkey.py`, and the `pynput` recorder path) is
-implemented but **untested**. Issues and PRs welcome.
-
-## Adding a video
-
-1. Record your agent training (QuickTime on macOS, Game Bar on Windows). Keep
-   it under 10 MB and use `.mp4`.
-2. Open a new issue in your own repo, drag the video into the comment box, and
-   wait for it to upload. GitHub replies with a URL like
-   `https://user-images.githubusercontent.com/.../demo.mp4`.
-3. Paste that URL on its own line near the top of this README (replacing the
-   placeholder). GitHub renders bare video URLs as an inline player. Don't wrap
-   it in markdown image or link syntax.
-4. You can close the issue; the uploaded file stays available.
-
-A GIF works too (`![demo](demo.gif)`) and autoplays, but files get large fast.
+- `ENT_COEF` sets how much the agent explores. Raise it to discover new terrain,
+  lower it to refine what already works.
+- `BC_ANCHOR_COEF` sets how tightly it is held to your demos.
