@@ -167,4 +167,5 @@ Everything lives in `config.py`. The settings worth touching first:
 ## Important notes
 
 - Due to the game being closed-source, whilst training the agent, you cannot use your computer :(
+- I tried using the timer stopping as an indicator for when you've finished, it wasn't very effective. Audio is much better
 
