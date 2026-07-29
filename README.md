@@ -1,4 +1,4 @@
-# Deducto Parkour RL
+# DeductoRL
 
 A reinforcement learning agent that learns how to play Deducto parkour. The
 game is closed-source, so it reads the screen with computer vision 
