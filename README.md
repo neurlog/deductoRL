@@ -1,26 +1,22 @@
 # Deducto Parkour RL
 
-Train a reinforcement learning agent to speedrun Deducto's parkour course. The
-game is closed-source, so the agent plays like a human would: it reads the
-screen with computer vision and drives the real keyboard and mouse.
+A reinforcement learning agent that learns how to play Deducto parkour. The
+game is closed-source, so it reads the screen with computer vision 
+and utilizes the real keyboard and mouse; therefore, if you're training an agent,
+you cannot use your computer at the same time.
 
-https://user-images.githubusercontent.com/PLACEHOLDER/demo.mp4
+**How it works:** you record demos of yourself playing, the policy is
+behavior-cloned from them, then agent fine-tunes it against a reward built system from
+the on-screen timer and finish line. 
 
-<!-- Replace the line above with your video. See "Adding a video" at the bottom. -->
+Because the finish is more than 4 seconds of precise movement away, training utilises curriculum learning: 
+moving the in-game finish line to an early platform, mastering it, then pushing the finish further out.
 
-**How it works:** you record demonstrations of yourself playing, the policy is
-behavior-cloned from them, then PPO fine-tunes it against a reward built from
-the on-screen timer. Because the finish is ~12 seconds of precise movement away,
-training uses a curriculum: move the in-game finish line to an early platform,
-master it, then push it further out.
+Moving the in-game timer can be done using `DeductoHelper.dll` which can be downloaded from [Deducto-Tools](https://github.com/neurlog/Deducto-Tools)
 
-> **Status:** built and tested on macOS (the game running under CrossOver). The
+> **Status:** I built and tested this on macOS (the game running under CrossOver). The
 > Windows code paths are written but have not been run against the real game, so
-> expect to hit rough edges, most likely in demo recording. Bug reports and PRs
-> are very welcome.
-
-> Trained runs are a personal technical project. Please don't submit agent times
-> to the community leaderboard.
+> expect bugs (nothing claude cant fix lol).
 
 ---
 
@@ -149,7 +145,7 @@ python train.py --name p03 --resume-from checkpoints/p02/ppo_deducto_parkour_fin
 ```
 
 Repeat for p04, p05 and so on, raising `--max-episode-seconds` as runs get
-longer. Press **Shift+Alt+K** to stop early; the model is always saved.
+longer. Press **Shift+Alt+K** to stop early. Stopping early saves the model.
 
 ---
 
