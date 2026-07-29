@@ -1,4 +1,5 @@
-"""Record human demonstrations for behavior-cloning pretraining.
+"""
+Record human demonstrations for behavior-cloning pretraining.
 
 Uses the same capture and step pacing as env.py, so recorded observations are
 identical in format to what the agent will see. Hold W the entire time — the

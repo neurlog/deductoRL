@@ -85,7 +85,6 @@ class TimerTracker:
 
     def __init__(self, start_time=None, detect_finish=True):
         self.start_time = start_time if start_time is not None else time.time()
-        # False = arm/fall detection only, for when audio owns finishes.
         self.detect_finish = detect_finish
         self.armed = False              # has the run actually begun?
         self.armed_at = None
@@ -95,7 +94,6 @@ class TimerTracker:
         self.frozen_since = None        # when the current freeze began
         self.event = None
         self.change_count = 0           # timer changes seen while pre-run
-        # Diagnostics, handy for logging/debugging.
         self.last_white = 0
         self.last_diff = -1
 
