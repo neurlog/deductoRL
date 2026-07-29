@@ -144,20 +144,26 @@ def check_input(listener):
               "receiving events. Check input permissions.")
 
 
-def record_episode(capture, listener, max_seconds):
+def record_episode(capture, listener, max_seconds, audio=None):
     """Record until a fall/finish is detected or time runs out.
 
     Pre-timer frames ARE recorded: reaching the first platform is part of the
     task, and the timer only starts once you land on it.
+
+    Finish detection must match env.py exactly, or the demos disagree with
+    training about when a run ended. With audio on, the tone owns finishes and
+    the timer's freeze heuristic is switched off.
     """
     obs_list, act_list = [], []
     w_held = 0
     armed_index = -1
     start = time.time()
-    tracker = TimerTracker(start_time=start)
+    tracker = TimerTracker(start_time=start, detect_finish=(audio is None))
     tracker.update(capture.crop_timer(capture.grab_bgr()))
     outcome, final_time = "timeout", None
     listener.consume()
+    if audio is not None:
+        audio.reset()
 
     while True:
         deadline = time.time() + config.STEP_DT
@@ -177,6 +183,9 @@ def record_episode(capture, listener, max_seconds):
         event = tracker.update(timer_crop)
         if tracker.armed and not was_armed:
             armed_index = len(obs_list) - 1
+
+        if audio is not None and tracker.armed and audio.finished():
+            event = "finish"
 
         if event == "finish":
             outcome = "finish"
@@ -224,7 +233,17 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     capture = ScreenCapture()
 
+    audio = None
+    if config.AUDIO_FINISH_ENABLED:
+        from audio import AudioFinishListener
+        a = AudioFinishListener()
+        audio = a if a.start() else None
+
     print(f"Recording up to {args.episodes} episodes into {args.out}/")
+    print(f"Finish detection: {'audio tone' if audio else 'timer freeze'}")
+    if audio is None:
+        print(f"  (timer must sit still for {config.FINISH_FREEZE_SECONDS}s to count as a"
+              " finish; if runs end early, raise FINISH_FREEZE_SECONDS or enable audio)")
     print("Hold W throughout. Press your respawn key during each countdown so "
           "every demo starts where the agent will.\nShift+Alt+K to stop early.\n")
 
@@ -238,7 +257,7 @@ def main():
             print("  GO" + " " * 20)
 
             obs, acts, outcome, final_time, w_frac, armed_index = record_episode(
-                capture, listener, max_seconds)
+                capture, listener, max_seconds, audio)
             jump_rate = float(acts[:, 0].mean()) if len(acts) else 0.0
             print(f"  -> {outcome}, {len(obs)} steps, jump rate {jump_rate:.1%}, "
                   f"W held {w_frac:.0%}"
@@ -268,6 +287,8 @@ def main():
     finally:
         listener.stop()
         capture.close()
+        if audio is not None:
+            audio.stop()
         print(f"\nDone. {kept} episodes saved in {args.out}/")
 
 
