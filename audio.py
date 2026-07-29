@@ -2,7 +2,7 @@
 
 Far more reliable than watching the timer freeze. Requires the game's audio
 routed into an INPUT device via a loopback driver, since neither OS lets you
-capture another app's output directly — see the README for setup, then
+capture another app's output directly. See the README for setup, then
 calibrate with diagnose_audio.py.
 """
 
@@ -22,7 +22,7 @@ except Exception:  # not installed, or PortAudio missing
 def analyze(block: np.ndarray, sample_rate: int):
     """Return (band_energy, ratio, peak_hz) for one audio block.
 
-    band_energy: mean FFT magnitude inside [FREQ_LOW, FREQ_HIGH] — the raw
+    band_energy: mean FFT magnitude inside [FREQ_LOW, FREQ_HIGH]. The raw
                  loudness of the high band (calibrate MIN_ENERGY against this).
     ratio:       in-band mean / out-of-band mean. A high tone concentrates
                  energy up high and leaves the rest near silent -> large ratio;

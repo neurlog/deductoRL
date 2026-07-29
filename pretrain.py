@@ -1,10 +1,10 @@
 """Behavior cloning: train the policy to imitate recorded demos, then save a
 normal PPO .zip that train.py can --resume-from.
 
-Also pretrains the value head on the demos' actual returns — without it PPO
+Also pretrains the value head on the demos' actual returns. Without it PPO
 starts with a random critic whose advantage estimates wreck the cloned policy.
 
-    python pretrain_bc.py --demos demos/run --out checkpoints/bc_pretrained.zip
+    python pretrain.py --demos demos/run --out checkpoints/bc_pretrained.zip
 """
 
 import argparse
@@ -70,7 +70,7 @@ def episode_returns(n_steps: int, outcome: str, final_time: float,
     PPO will actually see:
       * -TIME_PENALTY_PER_STEP every step
       * +TIMER_RUNNING_REWARD_PER_STEP (capped per episode) on each ARMED,
-        non-terminal step — the timer-running survival reward. armed_index
+        non-terminal step. The timer-running survival reward. Armed_index
         is the step the timer started (saved in each demo); -1 means it
         never armed, so no survival reward at all.
       * the outcome bonus (finish/fall) on the terminal step, which in
@@ -137,7 +137,7 @@ def load_demos(demo_dir: str):
         n_x, n_y = len(config.LOOK_DELTAS_X), len(config.LOOK_DELTAS_Y)
         if actions[:, 1].max() >= n_x or actions[:, 2].max() >= n_y:
             print(f"  SKIP {os.path.basename(path)}: action bins exceed current "
-                  f"config — recorded with different LOOK_DELTAS. Re-record.")
+                  f"config. Recorded with different LOOK_DELTAS. Re-record.")
             continue
 
         episodes.append({
@@ -215,7 +215,7 @@ def main():
     jump_rate = float(train_acts[:, 0].mean())
     print(f"  jump rate in demos: {jump_rate:.1%}")
     if jump_rate < 0.005:
-        print("  WARNING: almost no jumps recorded — check that the event tap saw "
+        print("  almost no jumps recorded. Check that the event tap saw "
               "SPACE (run record_demos.py --check-input).")
 
     if args.jump_weight is not None:

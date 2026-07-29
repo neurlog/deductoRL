@@ -35,7 +35,7 @@ def main():
 
     listener = AudioFinishListener()
     if not listener.start():
-        raise SystemExit("Could not open the audio device — see the message above.")
+        raise SystemExit("Could not open the audio device. See the message above.")
 
     print(f"Listening on device {config.AUDIO_DEVICE!r}. Play a run and finish it.")
     print(f"band=[{config.AUDIO_FINISH_FREQ_LOW}-{config.AUDIO_FINISH_FREQ_HIGH}]Hz  "

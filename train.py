@@ -30,7 +30,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train PPO on a Deducto parkour segment.")
     parser.add_argument(
         "--name", default="run",
-        help="Name for this segment/run — organizes checkpoints and logs into their own subfolder."
+        help="Name for this segment/run. Organizes checkpoints and logs into their own subfolder."
     )
     parser.add_argument(
         "--resume-from", default=None,
@@ -73,7 +73,7 @@ class HotkeyStopCallback(BaseCallback):
                 f"ppo_deducto_parkour_stopped_{self.num_timesteps}steps_{int(time.time())}",
             )
             self.model.save(snapshot)
-            print(f"\n[train] Shift+Option+K — saved snapshot {snapshot}.zip; stopping "
+            print(f"\n[train] Shift+Option+K. Saved snapshot {snapshot}.zip; stopping "
                   "(final checkpoint written on exit too).")
             return False
         return True
@@ -109,7 +109,7 @@ class FreezeDuringUpdateCallback(BaseCallback):
 
 
 class SuccessGateCallback(BaseCallback):
-    """Stop once `threshold` of the last `window` episodes finished — the
+    """Stop once `threshold` of the last `window` episodes finished. The
     signal to move the finish line to the next platform."""
 
     def __init__(self, window: int, threshold: int):
@@ -126,7 +126,7 @@ class SuccessGateCallback(BaseCallback):
             wins = sum(self.outcomes)
             if len(self.outcomes) == self.window and wins >= self.threshold:
                 print(f"\n[train] SUCCESS GATE: {wins}/{self.window} of the last "
-                      f"episodes finished — stage mastered. Stopping and saving; "
+                      f"episodes finished. Stage mastered. Stopping and saving; "
                       f"move the finish line to the next platform and resume "
                       f"from this run's ppo_deducto_parkour_final.zip.")
                 return False
@@ -216,7 +216,7 @@ def main():
         print(f"Resuming from {args.resume_from}")
         # custom_objects matters: PPO.load restores the hyperparameters
         # stored INSIDE the zip, so without these overrides your current
-        # config.py values are silently ignored on every resume — the BC
+        # config.py values are silently ignored on every resume. The BC
         # checkpoint carries whatever LR/ent_coef it was built with.
         model = PPO.load(
             args.resume_from,

@@ -1,4 +1,4 @@
-"""Shift+Option/Alt+K — stops training or recording cleanly."""
+"""Shift+Option/Alt+K. Stops training or recording cleanly."""
 
 import sys
 

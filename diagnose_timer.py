@@ -61,7 +61,7 @@ def main():
             event = tracker.update(crop)
             if tracker.armed and not was_armed:
                 events.append("ARMED")
-                print("\n  *** ARMED — timer started ***")
+                print("\n  *** ARMED. Timer started ***")
 
             if args.save_crops and frame_i % args.save_every == 0:
                 cv2.imwrite(os.path.join(args.save_crops, f"{frame_i:05d}_raw.png"), crop)
@@ -107,7 +107,7 @@ def main():
         print(f"diff (armed)  p25(noise)={noise}  median={int(np.median(da))}  p75(signal)={signal}  max={da.max()}")
     else:
         noise = signal = None
-        print("diff (armed)  no armed frames — the timer never started, or TIMER_ROI is wrong.")
+        print("diff (armed)  no armed frames. The timer never started, or TIMER_ROI is wrong.")
 
     if diffs_prearm:
         dp = np.array(diffs_prearm)
@@ -122,7 +122,7 @@ def main():
               f"   (between empty={lo} and full={hi})")
     else:
         print(f"  TIMER_PRESENT_MIN_PIXELS = {max(5, int(hi * 0.25))}"
-              f"   (WARNING: white count never varied much — did the timer ever"
+              f"   (white count never varied much. Did the timer ever"
               f" disappear? If not, this is a guess.)")
 
     if noise is not None and signal is not None:
@@ -131,7 +131,7 @@ def main():
             print(f"  TIMER_CHANGED_MIN_PIXELS = {rec_changed}"
                   f"   (above noise={noise}, below signal={signal})")
         else:
-            print(f"  TIMER_CHANGED_MIN_PIXELS = ? — noise and signal overlap"
+            print(f"  TIMER_CHANGED_MIN_PIXELS = ?. Noise and signal overlap"
                   f" (noise={noise}, signal={signal}).")
             print("    Your ROI probably includes changing scenery. Tighten "
                   "TIMER_ROI to just the digits.")

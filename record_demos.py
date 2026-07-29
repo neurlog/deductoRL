@@ -2,7 +2,7 @@
 Record human demonstrations for behavior-cloning pretraining.
 
 Uses the same capture and step pacing as env.py, so recorded observations are
-identical in format to what the agent will see. Hold W the entire time — the
+identical in format to what the agent will see. Hold W the entire time. The
 agent holds forward automatically, so demos must match its action semantics.
 
     python record_demos.py --check-input          # verify input is seen FIRST
@@ -30,7 +30,7 @@ class InputListener:
     """Accumulates real mouse deltas and SPACE presses between steps.
 
     Polling can miss a quick jump tap, and once a game captures the cursor
-    there is no polling API for relative mouse motion at all — hence a hook.
+    there is no polling API for relative mouse motion at all. Hence a hook.
     """
 
     def __init__(self):
@@ -80,7 +80,7 @@ class InputListener:
                 Quartz.kCGSessionEventTap, Quartz.kCGHeadInsertEventTap,
                 Quartz.kCGEventTapOptionListenOnly, mask, cb, None)
             if tap is None:
-                print("[recorder] FAILED to create event tap — grant Accessibility "
+                print("[recorder] FAILED to create event tap. Grant Accessibility "
                       "permission to whatever runs this script.")
                 return
             loop = Quartz.CFRunLoopGetCurrent()
@@ -141,7 +141,7 @@ def check_input(listener):
                   f"   events={listener.events_seen}", end="\r")
     except KeyboardInterrupt:
         print("\n\nIf dx/dy stayed 0 while you moved the mouse, the hook isn't "
-              "receiving events — check input permissions.")
+              "receiving events. Check input permissions.")
 
 
 def record_episode(capture, listener, max_seconds):
@@ -245,12 +245,12 @@ def main():
                   + (f", time {final_time:.2f}s" if final_time else ""))
 
             if w_frac < 0.9:
-                print("     WARNING: W wasn't held for most of the episode — this "
+                print("     W wasn't held for most of the episode. This "
                       "demo doesn't match the agent's action semantics.")
             if outcome == "aborted":
                 break
             if outcome != "finish" and not args.keep_falls:
-                print("  not a finish — discarded.")
+                print("  not a finish. Discarded.")
                 continue
 
             path = os.path.join(args.out, f"demo_{int(time.time())}_{ep:03d}.npz")

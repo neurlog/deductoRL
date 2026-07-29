@@ -100,7 +100,7 @@ elif _IS_WIN:
         if found:
             _user32.SetForegroundWindow(found[0])
         else:
-            print(f"[input] no window titled like '{name}' — is the game running?")
+            print(f"[input] no window titled like '{name}'. Is the game running?")
 
 else:
     raise RuntimeError(f"Unsupported platform: {sys.platform}")
@@ -149,7 +149,7 @@ def end_jump():
 
 
 def is_key_held(name):
-    """Physical key state — used by the demo recorder to check W is held."""
+    """Physical key state. Used by the demo recorder to check W is held."""
     if _IS_MAC:
         return bool(Quartz.CGEventSourceKeyState(
             Quartz.kCGEventSourceStateHIDSystemState, _KEYCODES[name]))

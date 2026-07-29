@@ -48,7 +48,7 @@ def timer_changed(prev_thresh, thresh) -> bool:
 
 
 def ocr_timer_seconds(timer_crop_bgr):
-    """Full OCR read — slow (~120ms), so call sparingly (once, at finish)."""
+    """Full OCR read. Slow (~120ms), so call sparingly (once, at finish)."""
     gray = cv2.cvtColor(timer_crop_bgr, cv2.COLOR_BGR2GRAY)
     gray = cv2.resize(gray, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
     _, thresh = cv2.threshold(gray, config.TIMER_THRESHOLD, 255, cv2.THRESH_BINARY)
