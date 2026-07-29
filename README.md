@@ -1,4 +1,4 @@
-# DeductoRL
+# deductoRL
 
 A reinforcement learning agent that learns how to play Deducto parkour. The
 game is closed-source, so it reads the screen with computer vision 
@@ -17,7 +17,7 @@ as a way to inform the robot when it has finished.
 Due to the finish being more than 4 seconds of precise movement away, the agent utilises curriculum learning: 
 moving the in-game finish line to an early platform, mastering it, then pushing the finish further out.
 
-Moving the in-game timer can be done using `DeductoHelper.dll` which can be downloaded from [Deducto-Tools](https://github.com/neurlog/Deducto-Tools). Massive shoutout to Dirty for helping me by creating and editing the DeductoHelper tool. DeductoHelper enables you to move the finish line, bind a respawn key, and set a respawn point.
+Moving the in-game timer can be done using `DeductoHelper.dll` which can be downloaded from [Deducto-Tools](https://github.com/neurlog/Deducto-Tools). DeductoHelper enables you to move the finish line, bind a respawn key, and set a respawn point, speeding up the training process. Massive shoutout to Dirty for helping me by creating and editing the DeductoHelper tool.
 
 > I built and tested this on macOS (the game running under CrossOver). The
 > Windows code paths are written but have not been run against the real game, so
