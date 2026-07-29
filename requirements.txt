@@ -1,0 +1,15 @@
+gymnasium>=0.29.1
+stable-baselines3[extra]>=2.3.2
+torch>=2.6.0
+numpy>=1.26.4
+opencv-python>=4.10.0.84
+mss>=9.0.1
+pytesseract>=0.3.13
+sounddevice>=0.4.6
+
+# macOS only
+pyobjc-framework-Quartz>=10.3.1; sys_platform == 'darwin'
+pyobjc-framework-Cocoa>=10.3.1; sys_platform == 'darwin'
+
+# Windows only (demo recording input hooks)
+pynput>=1.7.6; sys_platform == 'win32'
