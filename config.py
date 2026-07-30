@@ -1,8 +1,11 @@
 """Settings. Anything marked CALIBRATE depends on your screen and game setup."""
 
 # ---------------------------------------------------------------- capture ---
-CAPTURE_REGION = {"left": 0, "top": 0, "width": 1024, "height": 640}  # CALIBRATE: the game window
-TIMER_ROI = {"left": 475, "top": 48, "width": 69, "height": 24}       # CALIBRATE: box around the timer
+# PUT YOUR NUMBERS HERE. Run `python calibrate.py mouse`, hover the game
+# window's corners and the timer, and fill both boxes in. Nothing works until
+# you do; the code refuses to start while these are zero.
+CAPTURE_REGION = {"left": 0, "top": 0, "width": 0, "height": 0}   # the game window
+TIMER_ROI = {"left": 0, "top": 0, "width": 0, "height": 0}        # the on-screen timer
 TIMER_ROI_PADDING = 6           # px of slack so the timer can't clip out of the crop
 
 FRAME_SIZE = (128, 128)         # what the CNN sees. Re-record demos if changed
@@ -41,8 +44,8 @@ POST_RESET_DELAY_SECONDS = 0.5  # let the agent settle before it starts acting
 # ------------------------------------------------------------------ audio ---
 # Finish detection by sound, far steadier than watching the timer freeze.
 # Route game audio to an input device with a loopback driver (see README).
-AUDIO_FINISH_ENABLED = False
-AUDIO_DEVICE = None             # CALIBRATE: input device name, e.g. "BlackHole 16ch"
+AUDIO_FINISH_ENABLED = False    # set True once the two lines below are sorted
+AUDIO_DEVICE = "INPUT DEVICE HERE"   # `python diagnose_audio.py --list` shows the names
 AUDIO_SAMPLE_RATE = 48000       # must match the device, or you record silence
 AUDIO_BLOCK_SIZE = 2048         # samples per analysis window
 AUDIO_FINISH_FREQ_LOW = 510     # bracket the finish tone's pitch

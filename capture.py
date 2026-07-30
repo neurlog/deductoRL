@@ -12,6 +12,12 @@ import config
 class ScreenCapture:
     def __init__(self, region: dict = None):
         self.region = region or config.CAPTURE_REGION
+        for name, box in (("CAPTURE_REGION", self.region), ("TIMER_ROI", config.TIMER_ROI)):
+            if not box["width"] or not box["height"]:
+                raise SystemExit(
+                    f"config.{name} is still zero. Run `python calibrate.py mouse` and "
+                    f"fill in the pixel box, otherwise capture returns nothing."
+                )
         self._sct = mss.mss()
 
     def grab_raw(self) -> np.ndarray:
